@@ -15,5 +15,8 @@ def get_connection():
 def close_connection(conexao, cursor=None):
     if cursor:
         cursor.close()
-    if conexao.is_connected():
+    if conexao and conexao.is_connected():
         conexao.close()
+
+def get_mysql_error():
+    return mysql.connector.Error
