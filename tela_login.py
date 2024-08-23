@@ -182,7 +182,7 @@ def abrir_tela_cadastro():
                 entry_senha.delete(0, END)
                 entry_senhaConfirm.delete(0, END)
 
-            except mysql.connector.Error as err:
+            except database.get_mysql_error()  as err:
                 messagebox.showerror("Erro", f"Ocorreu um erro ao salvar os dados: {err}")
             finally:
                 database.close_connection(conexao, cursor)
