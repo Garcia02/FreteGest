@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import PhotoImage
+import os
 from datetime import datetime
 import database  # Importe o arquivo de conexão
 from tkinter import messagebox
@@ -19,8 +19,8 @@ def criar_tela_login():
     tela_Login = Tk()
     tela_Login.title("")
     tela_Login.resizable(width=False, height=False)
-    #icon = PhotoImage(file='caminhao.png')
-    #tela_Login.iconphoto(False, icon)
+    icon = PhotoImage(file=os.getcwd()+'\FreteGest\caminhao.png')
+    tela_Login.iconphoto(False, icon)
 
     # Definindo tamanho da janela
     largura_janela = 320
@@ -60,6 +60,9 @@ def criar_tela_login():
     # Campo de entrada para usuario
     entry_userID = Entry(frame_baixo)
     entry_userID.pack(fill='x', padx=10, pady=(0, 5))
+    # capturaa imputa o userID no campo
+    entry_userID.insert(0, os.path.join(os.path.expanduser("~"), "Downloads").split(os.sep)[2])
+
 
     # Texto senha
     texto_senha = Label(frame_baixo, text='Senha*', 
