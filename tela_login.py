@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import PhotoImage
+from datetime import datetime
 import database  # Importe o arquivo de conexão
 from tkinter import messagebox
 
@@ -43,7 +44,7 @@ def criar_tela_login():
     texto_subTitulo.pack(pady=(0, 10))
 
     # Parte inferior em cinza claro
-    frame_baixo = Frame(tela_Login, width=310, height=250, bg='lightgray')
+    frame_baixo = Frame(tela_Login, width=altura_janela-25, height=250, bg='lightgray')
     frame_baixo.pack_propagate(False)
     frame_baixo.pack()
 
@@ -85,22 +86,18 @@ def criar_tela_login():
     botao_cadastro.pack(side='left')
 
 def abrir_tela_cadastro():
-    global entry_nome, entry_UserID, entry_senhaConfirm
+    global entry_nome, entry_userID, entry_senhaConfirm,texto_apelido,entry_apelido,texto_email,entry_email
 
     if botao_cadastro['text'] != 'Cadastrar':
         # Definindo tamanho da janela
         largura_janela = 320
-        altura_janela = 450
+        altura_janela = 500
 
         # Centralizando a janela
         centralizar_janela(tela_Login, largura_janela, altura_janela)
 
         #ajusta o tamanho do frame principal
-        frame_baixo.config(height=365)
-
-        #remove o campo de Usuario
-        texto_userID.pack_forget()
-        entry_userID.pack_forget()
+        frame_baixo.config(height=altura_janela-85)
 
         # cria um novo campo para nome
         texto_nome = Label(frame_baixo, text='Nome*', 
@@ -110,13 +107,21 @@ def abrir_tela_cadastro():
         entry_nome = Entry(frame_baixo)
         entry_nome.pack(fill='x', padx=10, pady=(0, ))
 
-        # cria um novo campo para UserID
-        texto_UserID = Label(frame_baixo, text='UserID*', 
+        # cria um novo campo para apelido
+        texto_apelido = Label(frame_baixo, text='Apelido*', 
                             bg='lightgray', font=('Arial', 12), anchor='w')
-        texto_UserID.pack(fill='x', padx=10, pady=(0, 0))
-        # Campo de entrada para UserID
-        entry_UserID = Entry(frame_baixo)
-        entry_UserID.pack(fill='x', padx=10, pady=(0, 0))
+        texto_apelido.pack(fill='x', padx=10, pady=(0, 0))
+        # Campo de entrada para apelido
+        entry_apelido = Entry(frame_baixo)
+        entry_apelido.pack(fill='x', padx=10, pady=(0, 0))
+
+        # cria um novo campo para email
+        texto_email = Label(frame_baixo, text='E-mail*', 
+                            bg='lightgray', font=('Arial', 12), anchor='w')
+        texto_email.pack(fill='x', padx=10, pady=(0, 0))
+        # Campo de entrada para email
+        entry_email = Entry(frame_baixo)
+        entry_email.pack(fill='x', padx=10, pady=(0, 0))
 
         # Reposiciona o campo de senha
         texto_senha.pack_forget()
@@ -142,12 +147,15 @@ def abrir_tela_cadastro():
     else:
         # Obter os valores dos campos de entrada
         nome = entry_nome.get()
-        userID = entry_UserID.get()
+        userID = entry_userID.get()
+        apelido = entry_apelido.get()
+        email = entry_email.get()
         senha = entry_senha.get()
+        data_cadastro = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         senha_confirm = entry_senhaConfirm.get()
 
         # Validar os dados
-        if not nome or not userID or not senha or not senha_confirm:
+        if not nome or not userID or not apelido or not email or not senha or not senha_confirm:
             messagebox.showerror("Erro", "Todos os campos são obrigatórios!")
             return
         
@@ -168,8 +176,8 @@ def abrir_tela_cadastro():
                     return
 
                 # Inserir novo usuário
-                query = "INSERT INTO users (nome, userID, senha) VALUES (%s, %s, %s)"
-                values = (nome, userID, senha)
+                query = "INSERT INTO users (userID, apelido, nome, email, senha, data_cadastro) VALUES (%s, %s, %s, %s, %s, %s)"
+                values = (userID, apelido, nome, email, senha, data_cadastro)
                 
                 cursor.execute(query, values)
                 conexao.commit()
@@ -178,7 +186,9 @@ def abrir_tela_cadastro():
                 
                 # Limpar os campos após o cadastro
                 entry_nome.delete(0, END)
-                entry_UserID.delete(0, END)
+                entry_userID.delete(0, END)
+                entry_apelido.delete(0, END)
+                entry_email.delete(0, END)
                 entry_senha.delete(0, END)
                 entry_senhaConfirm.delete(0, END)
 
@@ -193,6 +203,12 @@ def abrir_tela_cadastro():
 def abrir_Login():
     if botao_login['text'] == 'Entrar':
         usuario = entry_userID.get()
+        texto_userID = Label(frame_baixo, text='UserID*', 
+                            bg='lightgray', font=('Arial', 12), anchor='w')
+        texto_userID.pack(fill='x', padx=10, pady=(0, 0))
+        # Campo de entrada para UserID
+        entry_UserID = Entry(frame_baixo)
+        entry_UserID.pack(fill='x', padx=10, pady=(0, 0)).get()
         senha = entry_senha.get()
 
         if not usuario or not senha:
