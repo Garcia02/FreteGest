@@ -12,14 +12,14 @@ def centralizar_janela(root, largura, altura):
     root.geometry(f'{largura}x{altura}+{pos_x}+{pos_y}')
 
 def criar_tela_login():
-    global tela_Login, frame_cima, frame_baixo, texto_login, texto_usuario, entry_usuario, texto_senha, entry_senha, frame_botoes, botao_login, botao_cadastro
+    global tela_Login, frame_cima, frame_baixo, texto_login, texto_userID, entry_userID, texto_senha, entry_senha, frame_botoes, botao_login, botao_cadastro
 
     # Criando janela
     tela_Login = Tk()
     tela_Login.title("")
     tela_Login.resizable(width=False, height=False)
-    icon = PhotoImage(file='caminhao.png')
-    tela_Login.iconphoto(False, icon)
+    #icon = PhotoImage(file='caminhao.png')
+    #tela_Login.iconphoto(False, icon)
 
     # Definindo tamanho da janela
     largura_janela = 320
@@ -52,13 +52,13 @@ def criar_tela_login():
                         bg='lightgray', font=('Arial', 20))
     texto_login.pack(pady=(0, 10))
 
-    # Texto usuario
-    texto_usuario = Label(frame_baixo, text='Usuario*', 
+    # Texto userID
+    texto_userID = Label(frame_baixo, text='UserID*', 
                           bg='lightgray', font=('Arial', 12), anchor='w')
-    texto_usuario.pack(fill='x', padx=10, pady=(5, 0))
+    texto_userID.pack(fill='x', padx=10, pady=(5, 0))
     # Campo de entrada para usuario
-    entry_usuario = Entry(frame_baixo)
-    entry_usuario.pack(fill='x', padx=10, pady=(0, 5))
+    entry_userID = Entry(frame_baixo)
+    entry_userID.pack(fill='x', padx=10, pady=(0, 5))
 
     # Texto senha
     texto_senha = Label(frame_baixo, text='Senha*', 
@@ -99,8 +99,8 @@ def abrir_tela_cadastro():
         frame_baixo.config(height=365)
 
         #remove o campo de Usuario
-        texto_usuario.pack_forget()
-        entry_usuario.pack_forget()
+        texto_userID.pack_forget()
+        entry_userID.pack_forget()
 
         # cria um novo campo para nome
         texto_nome = Label(frame_baixo, text='Nome*', 
@@ -162,13 +162,13 @@ def abrir_tela_cadastro():
                 cursor = conexao.cursor()
                 
                 # Verificar se o userID já existe
-                cursor.execute("SELECT * FROM usuarios WHERE userID = %s", (userID,))
+                cursor.execute("SELECT * FROM users WHERE userID = %s", (userID,))
                 if cursor.fetchone():
                     messagebox.showerror("Erro", "Este UserID já está em uso!")
                     return
 
                 # Inserir novo usuário
-                query = "INSERT INTO usuarios (nome, userID, senha) VALUES (%s, %s, %s)"
+                query = "INSERT INTO users (nome, userID, senha) VALUES (%s, %s, %s)"
                 values = (nome, userID, senha)
                 
                 cursor.execute(query, values)
@@ -192,7 +192,7 @@ def abrir_tela_cadastro():
 
 def abrir_Login():
     if botao_login['text'] == 'Entrar':
-        usuario = entry_usuario.get()
+        usuario = entry_userID.get()
         senha = entry_senha.get()
 
         if not usuario or not senha:
@@ -203,9 +203,18 @@ def abrir_Login():
         if conexao:
             try:
                 cursor = conexao.cursor()
+
+                # Verificar se o usuario esta cadastrado
+                query = "SELECT * FROM users WHERE userID = %s"
+                cursor.execute(query, (usuario,))
+                usuario_info = cursor.fetchone()
+
+                if not usuario_info:
+                    messagebox.showerror("Erro", "Usuário não cadastrado!")
+                    return  # Encerra a função se o usuário não existir
                     
                 # Verificar as credenciais do usuário
-                query = "SELECT * FROM usuarios WHERE userID = %s AND senha = %s"
+                query = "SELECT * FROM users WHERE userID = %s AND senha = %s"
                 cursor.execute(query, (usuario, senha))
                 usuario_info = cursor.fetchone()
 
