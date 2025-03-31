@@ -4,6 +4,47 @@ from datetime import datetime
 import database  # Importe o arquivo de conexão
 from tkinter import messagebox
 
+def get_user () :
+    global userID, apelido, nome, email, senha, data_cadastro, registro
+
+    #captura o userID conforme o usuario do sistema
+    userID = os.path.join(os.path.expanduser("~"), "Downloads").split(os.sep)[2]
+    #userID = "600532560"
+
+    # Verifica e captura os dados no MySQL
+    conexao = database.get_connection() 
+    
+    if conexao: 
+        try: 
+            cursor = conexao.cursor()
+                
+            # Verificar se o userID já existe
+            cursor.execute("SELECT * FROM users WHERE userID = %s", (userID,))
+            registro = cursor.fetchone()
+            criar_tela_login()
+            
+            if registro:
+                nome = registro[2]   
+                apelido = registro[1] 
+                email = registro[3]
+                senha = registro[4]
+                data_cadastro = registro[5].strftime("%d/%m/%Y")
+
+                entry_userID.insert(0,userID)
+
+            else:
+
+                abrir_tela_cadastro()
+                entry_userID.insert(0,userID)
+
+            return
+            
+        finally:
+            database.close_connection(conexao, cursor)
+
+    else:
+         messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados.")
+
 # Função para centralizar a janela
 def centralizar_janela(root, largura, altura):
     largura_tela = root.winfo_screenwidth()
@@ -60,9 +101,6 @@ def criar_tela_login():
     # Campo de entrada para usuario
     entry_userID = Entry(frame_baixo)
     entry_userID.pack(fill='x', padx=10, pady=(0, 5))
-    # capturaa imputa o userID no campo
-    entry_userID.insert(0, os.path.join(os.path.expanduser("~"), "Downloads").split(os.sep)[2])
-
 
     # Texto senha
     texto_senha = Label(frame_baixo, text='Senha*', 
@@ -89,12 +127,13 @@ def criar_tela_login():
     botao_cadastro.pack(side='left')
 
 def abrir_tela_cadastro():
-    global entry_nome, entry_userID, entry_senhaConfirm,texto_apelido,entry_apelido,texto_email,entry_email
+    global entry_nome, entry_userID, entry_senhaConfirm,texto_apelido,entry_apelido,texto_email,entry_email,texto_data_cadastro,entry_data_cadastro
 
-    if botao_cadastro['text'] != 'Cadastrar':
+    # se o botão não for "cadastrar" ele deve executar funções para inputar dados no banco de dados, se não ele de costruir o painel de Cadastro
+    if botao_cadastro['text'] =='Cadastro':
         # Definindo tamanho da janela
         largura_janela = 320
-        altura_janela = 500
+        altura_janela = 550
 
         # Centralizando a janela
         centralizar_janela(tela_Login, largura_janela, altura_janela)
@@ -109,6 +148,7 @@ def abrir_tela_cadastro():
         # Campo de entrada para nome
         entry_nome = Entry(frame_baixo)
         entry_nome.pack(fill='x', padx=10, pady=(0, ))
+        entry_nome.insert(0, globals().get("nome", "") )
 
         # cria um novo campo para apelido
         texto_apelido = Label(frame_baixo, text='Apelido*', 
@@ -117,6 +157,7 @@ def abrir_tela_cadastro():
         # Campo de entrada para apelido
         entry_apelido = Entry(frame_baixo)
         entry_apelido.pack(fill='x', padx=10, pady=(0, 0))
+        entry_apelido.insert(0, globals().get("apelido", "") )
 
         # cria um novo campo para email
         texto_email = Label(frame_baixo, text='E-mail*', 
@@ -125,6 +166,16 @@ def abrir_tela_cadastro():
         # Campo de entrada para email
         entry_email = Entry(frame_baixo)
         entry_email.pack(fill='x', padx=10, pady=(0, 0))
+        entry_email.insert(0, globals().get("email", "") )
+
+        # cria um novo campo para data de cadastro
+        texto_data_cadastro = Label(frame_baixo, text='Data de cadastro*', 
+                            bg='lightgray', font=('Arial', 12), anchor='w')
+        texto_data_cadastro.pack(fill='x', padx=10, pady=(0, 0))
+        # Campo de entrada para data de cadastro
+        entry_data_cadastro = Entry(frame_baixo)
+        entry_data_cadastro.pack(fill='x', padx=10, pady=(0, 0))
+        entry_data_cadastro.insert(0, globals().get("data_cadastro", "") )
 
         # Reposiciona o campo de senha
         texto_senha.pack_forget()
@@ -145,7 +196,16 @@ def abrir_tela_cadastro():
         botao_cadastro.config(text="Cadastrar", bg="#607D8B", fg='white')
         botao_login.config(text="Login", bg="#BDBDBD", fg='black')
 
-        texto_login['text'] = 'Cadastrar'
+        # se entry_userID for diferente de vazio quer dizer que o usuario ja esta cadastrado, 
+        # sendo assim mudamos a painel de cadastrar para Cadastro e o botão é renomeado para Editar, 
+        # podendo executar a função de editar os dados
+        if registro:
+            texto_login['text'] = 'Cadastro'
+            botao_cadastro.config(text="Editar")
+            entry_senhaConfirm.pack_forget()
+            texto_senhaConfirm.pack_forget()
+        else:
+            texto_login['text'] = 'Cadastrar'
 
     else:
         # Obter os valores dos campos de entrada
@@ -153,39 +213,59 @@ def abrir_tela_cadastro():
         userID = entry_userID.get()
         apelido = entry_apelido.get()
         email = entry_email.get()
-        senha = entry_senha.get()
-        data_cadastro = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data_cadastro = datetime.now().strftime("%y-%m-%d %H:%M:%S")
         senha_confirm = entry_senhaConfirm.get()
 
         # Validar os dados
-        if not nome or not userID or not apelido or not email or not senha or not senha_confirm:
+        if not nome or not userID or not apelido or not email or not entry_senha.get() :
             messagebox.showerror("Erro", "Todos os campos são obrigatórios!")
             return
         
-        if senha != senha_confirm:
-            messagebox.showerror("Erro", "As senhas não coincidem!")
-            return
+        # se o botão for Editar a condição ira comparar a senha digitada com a senha cadastrada,
+        # se não ira compar a senha e a confrimação de senha, seguindo a função de cadastro de um novo usuario
+        if botao_cadastro['text'] != 'Editar':
+            if entry_senha.get() != senha_confirm:
+                messagebox.showerror("Erro", "As senhas não coincidem!")
+                return
+        else:
+            if entry_senha.get() != senha:
+                messagebox.showerror("Erro", "Senha incorreta!")
+                return
         
-                # Salvar os dados no MySQL
+        # Salvar os dados no MySQL
         conexao = database.get_connection()
         if conexao:
             try:
                 cursor = conexao.cursor()
                 
-                # Verificar se o userID já existe
-                cursor.execute("SELECT * FROM users WHERE userID = %s", (userID,))
-                if cursor.fetchone():
-                    messagebox.showerror("Erro", "Este UserID já está em uso!")
-                    return
+                if botao_cadastro['text'] == 'Editar':
+                    # Edita os dados do usuario
+                    query = "UPDATE users SET apelido = %s, nome = %s, email = %s, senha = %s WHERE userID = %s" 
+                    values = (apelido, nome, email, senha, userID) 
 
-                # Inserir novo usuário
-                query = "INSERT INTO users (userID, apelido, nome, email, senha, data_cadastro) VALUES (%s, %s, %s, %s, %s, %s)"
-                values = (userID, apelido, nome, email, senha, data_cadastro)
+                    cursor.execute(query, values) 
+                    conexao.commit()
+
+                else:
+                    # Verificar se o userID já existe
+                    cursor.execute("SELECT * FROM users WHERE userID = %s", (userID,))
+                    if cursor.fetchone():
+                        messagebox.showerror("Erro", "Este UserID já está em uso!")
+                        return
+
+                    # Inserir novo usuário
+                    senha = entry_senha.get()
+                    query = "INSERT INTO users (userID, apelido, nome, email, senha, data_cadastro) VALUES (%s, %s, %s, %s, %s, %s)"
+                    values = (userID, apelido, nome, email, senha, data_cadastro)
+                    
+                    cursor.execute(query, values)
+                    conexao.commit()
                 
-                cursor.execute(query, values)
-                conexao.commit()
-                
-                messagebox.showinfo("Sucesso", "Usuário cadastrado com sucesso!")
+                # ajustando a condição para informar uma mensagem adeuqada ao usuario conforme a função a ser executada
+                if botao_cadastro['text'] != 'Editar':
+                    messagebox.showinfo("Sucesso", "Usuário cadastrado com sucesso!")
+                else:
+                    messagebox.showinfo("Sucesso", "Usuário editado com sucesso!")
                 
                 # Limpar os campos após o cadastro
                 entry_nome.delete(0, END)
@@ -194,6 +274,7 @@ def abrir_tela_cadastro():
                 entry_email.delete(0, END)
                 entry_senha.delete(0, END)
                 entry_senhaConfirm.delete(0, END)
+                entry_data_cadastro.delete(0,END)
 
             except database.get_mysql_error()  as err:
                 messagebox.showerror("Erro", f"Ocorreu um erro ao salvar os dados: {err}")
@@ -205,57 +286,25 @@ def abrir_tela_cadastro():
 
 def abrir_Login():
     if botao_login['text'] == 'Entrar':
-        usuario = entry_userID.get()
-        texto_userID = Label(frame_baixo, text='UserID*', 
-                            bg='lightgray', font=('Arial', 12), anchor='w')
-        texto_userID.pack(fill='x', padx=10, pady=(0, 0))
-        # Campo de entrada para UserID
-        entry_UserID = Entry(frame_baixo)
-        entry_UserID.pack(fill='x', padx=10, pady=(0, 0)).get()
-        senha = entry_senha.get()
+        userID = entry_userID.get()
 
-        if not usuario or not senha:
+        if not userID or not entry_senha.get():
             messagebox.showerror('Erro', 'Por favor preencha todos os campos!')
             return
         
-        conexao = database.get_connection()
-        if conexao:
-            try:
-                cursor = conexao.cursor()
-
-                # Verificar se o usuario esta cadastrado
-                query = "SELECT * FROM users WHERE userID = %s"
-                cursor.execute(query, (usuario,))
-                usuario_info = cursor.fetchone()
-
-                if not usuario_info:
-                    messagebox.showerror("Erro", "Usuário não cadastrado!")
-                    return  # Encerra a função se o usuário não existir
-                    
-                # Verificar as credenciais do usuário
-                query = "SELECT * FROM users WHERE userID = %s AND senha = %s"
-                cursor.execute(query, (usuario, senha))
-                usuario_info = cursor.fetchone()
-
-                if usuario_info:
-                    messagebox.showinfo("Sucesso", f"Olá {usuario_info[1]}, login realizado com sucesso!")
-                    tela_Login.destroy()
-
-                else:
-                    messagebox.showerror("Erro", "Credenciais inválidas!")
-
-            except database.mysql.connector.Error as err:
-                messagebox.showerror("Erro", f"Ocorreu um erro ao verificar as credenciais: {err}")
-            finally:
-                database.close_connection(conexao, cursor)
+        if entry_senha.get() != senha: 
+            messagebox.showerror("Erro", "Senha incorreta!") 
+            return
         else:
-            messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados.")
+            messagebox.showinfo("Longin","Loging ...")
+            tela_Login.destroy()
+        
     else:
         tela_Login.destroy()
-        criar_tela_login()
+        get_user()
 
-# Iniciar o programa criando a tela de login
-criar_tela_login()
+# Iniciar o programa veirificando se o usuario captura esta cadastrado
+get_user()
 
 # Iniciar o loop principal
 tela_Login.mainloop()
