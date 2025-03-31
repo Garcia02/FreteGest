@@ -1,8 +1,14 @@
-from tkinter import *
 import os
 from datetime import datetime
 import database  # Importe o arquivo de conexão
 from tkinter import messagebox
+from tkinter import PhotoImage
+from tkinter import Tk
+from tkinter import Frame
+from tkinter import Label
+from tkinter import Entry
+from tkinter import Button
+from tkinter import END
 
 def get_user () :
     global userID, apelido, nome, email, senha, data_cadastro, registro
