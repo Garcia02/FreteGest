@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import messagebox, PhotoImage
 import re
 import bcrypt
-import database
+import BaseDados.database as database
 
 # Configuração do logging
 logging.basicConfig(level=logging.ERROR, filename='fretgest.log', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,7 +24,8 @@ class FreteGestApp:
         self.master.title("FreteGest")
         self.master.resizable(width=False, height=False)
 
-        self.icon = PhotoImage(file=os.path.join(os.getcwd(), 'FreteGest', 'caminhao.png'))
+        caminho_icon = os.path.join(os.getcwd(), 'Imagens','caminhao.png')
+        self.icon = PhotoImage(file=caminho_icon)
         self.master.iconphoto(False, self.icon)
 
         # Capturar o userID do sistema

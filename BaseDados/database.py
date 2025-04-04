@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.ERROR, filename='fretgest_database.log', forma
 
 # Leitura do arquivo de configuração
 config = configparser.ConfigParser()
-config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
+config_file = os.path.join(os.path.dirname(__file__), 'credenciais.ini')
 
 if not os.path.exists(config_file):
     raise FileNotFoundError(f"O arquivo de configuração 'config.ini' não foi encontrado em {os.path.dirname(__file__)}")
