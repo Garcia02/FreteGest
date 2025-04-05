@@ -1,3 +1,36 @@
+"""
+Arquivo: database.py
+Descrição: Este arquivo contém as funções e configurações necessárias para gerenciar a conexão
+e operações com o banco de dados MySQL para o sistema FreteGest.
+
+Funcionalidades principais:
+1. Configuração e inicialização do pool de conexões com o banco de dados
+2. Execução de queries SQL
+3. Operações CRUD (Create, Read, Update, Delete) para usuários
+4. Inicialização da estrutura do banco de dados
+
+O que este arquivo faz:
+- Configura o logging para registrar erros e informações importantes
+- Lê as configurações do banco de dados de um arquivo de configuração externo
+- Cria e gerencia um pool de conexões para melhor desempenho e uso de recursos
+- Fornece funções para executar queries SQL de forma segura
+- Implementa funções específicas para operações comuns relacionadas a usuários
+- Inicializa a estrutura do banco de dados, criando tabelas necessárias
+
+Possíveis melhorias futuras:
+1. Implementar um sistema de migração de banco de dados para gerenciar alterações de esquema
+2. Adicionar suporte para transações mais complexas
+3. Implementar um sistema de cache para queries frequentes
+4. Expandir as funções CRUD para outras entidades além de usuários
+5. Adicionar suporte para conexões seguras (SSL/TLS) com o banco de dados
+
+Observações adicionais:
+- O arquivo usa o módulo mysql.connector para interagir com o MySQL
+- A configuração do banco de dados é lida de um arquivo externo para maior segurança
+- O sistema de pooling de conexões ajuda a gerenciar eficientemente as conexões com o banco de dados
+- Funções de logging são utilizadas para facilitar a depuração e monitoramento
+"""
+
 import mysql.connector
 from mysql.connector import pooling
 import logging
@@ -125,7 +158,6 @@ def update_user(user_data):
         user_data['userID']
     ))
 
-# Função para inicializar o banco de dados (criar tabelas, etc.)
 def initialize_database():
     """Inicializa o banco de dados criando as tabelas necessárias."""
     create_users_table = """
